@@ -5,7 +5,11 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from scripts.skillhub import CatalogError, load_components
+from scripts.skillhub import (
+    CatalogError,
+    load_components,
+    validate_inline_skill_dependencies,
+)
 
 
 COMPONENT = """\
@@ -37,6 +41,35 @@ class ComponentOwnerTests(unittest.TestCase):
     def test_rejects_third_party_repository(self):
         with self.assertRaisesRegex(CatalogError, "repo must be owned by HYGON-AI"):
             self.load_repo("third-party/example")
+
+
+class StandaloneSkillTests(unittest.TestCase):
+    def test_rejects_dependency_on_sibling_skill(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            skill_dir = root / "skills" / "bulk-example"
+            skill_dir.mkdir(parents=True)
+            errors = validate_inline_skill_dependencies(
+                skill_dir,
+                "Load `../required-skill/SKILL.md` before continuing.",
+                root,
+            )
+            self.assertEqual(len(errors), 1)
+            self.assertIn("inline dependency escapes skill directory", errors[0])
+
+    def test_accepts_bundled_skill_reference(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            skill_dir = root / "skills" / "self-contained"
+            bundled = skill_dir / "references" / "rules" / "SKILL.md"
+            bundled.parent.mkdir(parents=True)
+            bundled.write_text("# Rules\n", encoding="utf-8")
+            errors = validate_inline_skill_dependencies(
+                skill_dir,
+                "Load `references/rules/SKILL.md` before continuing.",
+                root,
+            )
+            self.assertEqual(errors, [])
 
 
 if __name__ == "__main__":

@@ -3,18 +3,6 @@
   "organization": "HYGON-AI",
   "skills": [
     {
-      "name": "bulk-add-model",
-      "description": "为 inference-cookbook-das 批量新增模型部署文档。适用于用户要求参照指定已有模型记录，生成多个目标模型记录的场景，例如“参照 A 生成 B/C/D”。",
-      "category": "Model Cookbook",
-      "product": "Inference Cookbook DAS",
-      "source": {
-        "repo": "HYGON-AI/inference-cookbook-das",
-        "ref": "main",
-        "path": ".claude/skills/bulk-add-model"
-      },
-      "catalog_path": "skills/bulk-add-model"
-    },
-    {
       "name": "skillhub-contributor",
       "description": "Create, review, and onboard portable Agent Skills into Hygon SkillHub. Use when adding a new SKILL.md, registering a HYGON-AI product repository in components.d, preparing a SkillHub contribution, or diagnosing catalog validation and synchronization failures.",
       "category": "Developer Tools",

@@ -23,7 +23,6 @@ npx skills add HYGON-AI/skills --skill skillhub-contributor --agent codex --yes
 
 | Product | Description | Skills |
 |---|---|---|
-| **Inference Cookbook DAS** | Add and maintain model recipes in the Hygon inference cookbook. | [`bulk-add-model`](skills/bulk-add-model) |
 | **SkillHub** | Author, validate, onboard, and publish portable Agent Skills across HYGON-AI projects. | [`skillhub-contributor`](skills/skillhub-contributor) |
 
 <!-- catalog:end -->
@@ -56,4 +55,4 @@ Product repositories remain the source of truth for mirrored skills. The catalog
 
 ## License
 
-Repository code is licensed under Apache License 2.0 unless stated otherwise. Mirrored skill content remains under its source license; `bulk-add-model` is distributed under the [inference-cookbook-das MIT License](LICENSES/inference-cookbook-das-MIT.txt). Imported skills must carry a license compatible with public redistribution.
+Repository code and catalog-owned skill content are licensed under Apache License 2.0 unless stated otherwise. Mirrored skill content remains under its source license, and imported skills must carry a license compatible with public redistribution.

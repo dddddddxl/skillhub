@@ -1,11 +1,4 @@
 {
   "schema_version": 1,
-  "skills": {
-    "bulk-add-model": {
-      "repo": "HYGON-AI/inference-cookbook-das",
-      "ref": "main",
-      "commit": "5fdaea8f87cb64f1bafda75467683bc513042641",
-      "path": ".claude/skills/bulk-add-model"
-    }
-  }
+  "skills": {}
 }

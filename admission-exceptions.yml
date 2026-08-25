@@ -7,3 +7,8 @@ exceptions:
     reasons:
       - SKILL.md exceeds the 500-line portability limit.
       - A relative link escapes the standalone skill directory.
+  - repo: HYGON-AI/inference-cookbook-das
+    path: .claude/skills/bulk-add-model
+    reasons:
+      - The skill requires ../add-model/SKILL.md, which is not bundled in the standalone installation.
+      - Re-admit it only after the source team makes the dependency self-contained and validates the installed package.
