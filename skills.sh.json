@@ -3,40 +3,10 @@
   "notGrouped": "bottom",
   "groupings": [
     {
-      "title": "CI and Reliability",
-      "description": "HYGON-AI skills for ci and reliability workflows.",
-      "skills": [
-        "babysit-pr-to-pass-ci",
-        "debug-distributed-hang",
-        "sglang-bisect-ci-regression",
-        "sglang-prod-incident-triage"
-      ]
-    },
-    {
       "title": "Developer Tools",
       "description": "HYGON-AI skills for developer tools workflows.",
       "skills": [
-        "env-var-conventions",
-        "large-class-style",
-        "scripted-runtime-notes",
-        "sglang-cherrypick",
-        "skillhub-contributor",
-        "speculative-naming"
-      ]
-    },
-    {
-      "title": "Diffusion Inference",
-      "description": "HYGON-AI skills for diffusion inference workflows.",
-      "skills": [
-        "sglang-diffusion-benchmark-profile",
-        "sglang-diffusion-performance"
-      ]
-    },
-    {
-      "title": "Kernel Development",
-      "description": "HYGON-AI skills for kernel development workflows.",
-      "skills": [
-        "add-sgl-kernel"
+        "skillhub-contributor"
       ]
     },
     {
@@ -44,27 +14,6 @@
       "description": "HYGON-AI skills for model cookbook workflows.",
       "skills": [
         "bulk-add-model"
-      ]
-    },
-    {
-      "title": "Model Integration",
-      "description": "HYGON-AI skills for model integration workflows.",
-      "skills": [
-        "compute-mamba-ratio"
-      ]
-    },
-    {
-      "title": "Performance",
-      "description": "HYGON-AI skills for performance workflows.",
-      "skills": [
-        "generate-profile"
-      ]
-    },
-    {
-      "title": "Testing",
-      "description": "HYGON-AI skills for testing workflows.",
-      "skills": [
-        "kl-consistency-test"
       ]
     }
   ]

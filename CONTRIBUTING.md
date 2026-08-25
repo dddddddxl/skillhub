@@ -1,6 +1,12 @@
 # Contributing
 
-Hygon SkillHub is a publication catalog. Prefer product-owned source skills so documentation and product changes evolve together.
+Hygon SkillHub is a publication catalog. Product teams own their source skills so documentation and product changes evolve together.
+
+## Publication boundary
+
+SkillHub publishes skills whose source-of-truth repository is owned by the `HYGON-AI` GitHub organization. Organization ownership alone is not sufficient: each published skill must be either HYGON-authored or substantively adapted and validated for HCU, with a HYGON team responsible for ongoing maintenance.
+
+Do not register or mirror an unchanged third-party or upstream skill as a HYGON-AI skill. Link to the canonical upstream skill instead, then request catalog admission after the product team has added and tested the HCU-specific workflow. Preserve all applicable third-party copyright, license, and NOTICE material in an adapted skill.
 
 ## Add a product-owned skill
 
@@ -35,7 +41,10 @@ Use catalog ownership only for SkillHub-wide workflows. Initialize a standard sk
 
 ## Pull request checklist
 
-- [ ] The owning team approved publication.
+- [ ] The source-of-truth repository is owned by `HYGON-AI`.
+- [ ] The skill is HYGON-authored or documents substantive, tested HCU adaptations.
+- [ ] A HYGON team owns ongoing maintenance and approved publication.
+- [ ] Third-party attribution, license, and NOTICE requirements are preserved.
 - [ ] The source and catalog licenses are compatible.
 - [ ] Scripts were reviewed and tested.
 - [ ] `python3 scripts/validate_skills.py` passes.

@@ -24,7 +24,6 @@ npx skills add HYGON-AI/skills --skill skillhub-contributor --agent codex --yes
 | Product | Description | Skills |
 |---|---|---|
 | **Inference Cookbook DAS** | Add and maintain model recipes in the Hygon inference cookbook. | [`bulk-add-model`](skills/bulk-add-model) |
-| **SGLang-DAS** | Develop, optimize, test, profile, and operate SGLang-DAS inference and diffusion workloads on Hygon accelerators. | [`add-sgl-kernel`](skills/add-sgl-kernel), [`babysit-pr-to-pass-ci`](skills/babysit-pr-to-pass-ci), [`compute-mamba-ratio`](skills/compute-mamba-ratio), [`debug-distributed-hang`](skills/debug-distributed-hang), [`env-var-conventions`](skills/env-var-conventions), [`generate-profile`](skills/generate-profile), [`kl-consistency-test`](skills/kl-consistency-test), [`large-class-style`](skills/large-class-style), [`scripted-runtime-notes`](skills/scripted-runtime-notes), [`sglang-bisect-ci-regression`](skills/sglang-bisect-ci-regression), [`sglang-cherrypick`](skills/sglang-cherrypick), [`sglang-diffusion-benchmark-profile`](skills/sglang-diffusion-benchmark-profile), [`sglang-diffusion-performance`](skills/sglang-diffusion-performance), [`sglang-prod-incident-triage`](skills/sglang-prod-incident-triage), [`speculative-naming`](skills/speculative-naming) |
 | **SkillHub** | Author, validate, onboard, and publish portable Agent Skills across HYGON-AI projects. | [`skillhub-contributor`](skills/skillhub-contributor) |
 
 <!-- catalog:end -->
@@ -51,6 +50,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) to onboard a product or skill.
 
 The catalog publishes reviewed source content; it does not make arbitrary third-party skills trusted. Every product entry records its repository, ref, and source path in `catalog.json`, and synchronized commits are recorded in `.skillhub-lock.json`. Consumers should still review executable scripts and permissions before installation.
 
+## Source attribution
+
+Product repositories remain the source of truth for mirrored skills. The catalog preserves upstream authorship and license terms, records each source repository, ref, and path in `catalog.json`, and does not treat an unchanged third-party skill as a HYGON-AI adaptation.
+
 ## License
 
-Unless a skill directory states otherwise, repository code and skill content are licensed under Apache License 2.0. Imported skills must carry a license compatible with public redistribution.
+Repository code is licensed under Apache License 2.0 unless stated otherwise. Mirrored skill content remains under its source license; `bulk-add-model` is distributed under the [inference-cookbook-das MIT License](LICENSES/inference-cookbook-das-MIT.txt). Imported skills must carry a license compatible with public redistribution.

@@ -1,6 +1,6 @@
 # Component registry
 
-Each YAML file registers one product repository. Product teams change only their own file, which avoids a shared manifest conflict.
+Each YAML file registers one product repository. Product teams change only their own file, which avoids a shared manifest conflict. Registered repositories must be owned by `HYGON-AI`; unchanged third-party or upstream skills are not eligible for publication as HYGON-AI skills.
 
 Required fields are `name`, `repo`, `description`, and a non-empty `skills` list. Each skill needs `path`, globally unique `catalog_dir`, and `category`. `ref` defaults to `main`; `local` defaults to `false`.
 
