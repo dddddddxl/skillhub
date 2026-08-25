@@ -3,30 +3,6 @@
   "organization": "HYGON-AI",
   "skills": [
     {
-      "name": "add-sgl-kernel",
-      "description": "Step-by-step tutorial for adding a heavyweight AOT CUDA/C++ kernel to sgl-kernel (including tests & benchmarks)",
-      "category": "Kernel Development",
-      "product": "SGLang-DAS",
-      "source": {
-        "repo": "HYGON-AI/sglang-das",
-        "ref": "main",
-        "path": ".claude/skills/add-sgl-kernel"
-      },
-      "catalog_path": "skills/add-sgl-kernel"
-    },
-    {
-      "name": "babysit-pr-to-pass-ci",
-      "description": "Start and persistently pursue a goal to babysit an SGLang pull request until selected GitHub Actions workflows pass on the latest PR head. Use when asked to monitor, babysit, retry, or fix PR CI for lint.yml, pr-test.yml, pr-test-extra.yml, AMD, or other named workflows; classify failures as PR-related versus flaky or infrastructural, auto-fix and push only small clean fixes, rerun failed jobs only up to 10 times, and ignore unselected workflows.",
-      "category": "CI and Reliability",
-      "product": "SGLang-DAS",
-      "source": {
-        "repo": "HYGON-AI/sglang-das",
-        "ref": "main",
-        "path": ".claude/skills/babysit-pr-to-pass-ci"
-      },
-      "catalog_path": "skills/babysit-pr-to-pass-ci"
-    },
-    {
       "name": "bulk-add-model",
       "description": "为 inference-cookbook-das 批量新增模型部署文档。适用于用户要求参照指定已有模型记录，生成多个目标模型记录的场景，例如“参照 A 生成 B/C/D”。",
       "category": "Model Cookbook",
@@ -39,150 +15,6 @@
       "catalog_path": "skills/bulk-add-model"
     },
     {
-      "name": "compute-mamba-ratio",
-      "description": "Compute the optimal --mamba-full-memory-ratio (or --max-mamba-cache-size pin) for a hybrid attention + linear-attention (Mamba / GDN / KDA) model's two serving memory pools, from the workload and serving config. Use when a user asks what ratio to set, why concurrency is clamped, or how to size the state vs KV pools for a hybrid model.",
-      "category": "Model Integration",
-      "product": "SGLang-DAS",
-      "source": {
-        "repo": "HYGON-AI/sglang-das",
-        "ref": "main",
-        "path": ".claude/skills/compute-mamba-ratio"
-      },
-      "catalog_path": "skills/compute-mamba-ratio"
-    },
-    {
-      "name": "debug-distributed-hang",
-      "description": "Debug hanging issues in SGLang distributed inference (TP/PP/DP/EP). Covers identifying hang locations via py-spy/watchdog/cuda coredump, per-rank logging to find state divergence, binary-search methodology for locating the first diverge point, and fix patterns. Use when a multi-GPU SGLang run hangs, freezes, or times out during collective operations.",
-      "category": "CI and Reliability",
-      "product": "SGLang-DAS",
-      "source": {
-        "repo": "HYGON-AI/sglang-das",
-        "ref": "main",
-        "path": ".claude/skills/debug-distributed-hang"
-      },
-      "catalog_path": "skills/debug-distributed-hang"
-    },
-    {
-      "name": "env-var-conventions",
-      "description": "Conventions for SGLang environment variables — where to define, how to access, how to name, and how to deprecate. Use when adding, renaming, or reviewing any `SGLANG_*` environment variable (or migrating a legacy `SGL_*` alias), or when touching `python/sglang/srt/environ.py`.",
-      "category": "Developer Tools",
-      "product": "SGLang-DAS",
-      "source": {
-        "repo": "HYGON-AI/sglang-das",
-        "ref": "main",
-        "path": ".claude/skills/env-var-conventions"
-      },
-      "catalog_path": "skills/env-var-conventions"
-    },
-    {
-      "name": "generate-profile",
-      "description": "Generate an e2e profiling trace of an SGLang server run. Launches a server, validates accuracy, captures a Chrome-compatible trace, and returns the profile path.",
-      "category": "Performance",
-      "product": "SGLang-DAS",
-      "source": {
-        "repo": "HYGON-AI/sglang-das",
-        "ref": "main",
-        "path": ".claude/skills/generate-profile"
-      },
-      "catalog_path": "skills/generate-profile"
-    },
-    {
-      "name": "kl-consistency-test",
-      "description": "Write, calibrate, and debug the prefill-vs-decode logprob (KL) consistency tests in sglang -- the two independent conditions a zero requires (every operator batch-invariant, and the two paths computing the same function), which helper separates them, how to pick a threshold once they hold, and how to localize a divergence to a single operator. Use when adding a KL test to a model, picking or defending a kl_div threshold, or investigating a KL number that is too high.",
-      "category": "Testing",
-      "product": "SGLang-DAS",
-      "source": {
-        "repo": "HYGON-AI/sglang-das",
-        "ref": "main",
-        "path": ".claude/skills/kl-consistency-test"
-      },
-      "catalog_path": "skills/kl-consistency-test"
-    },
-    {
-      "name": "large-class-style",
-      "description": "Code style for SGLang large classes `Scheduler`, `TokenizerManager`, and `ModelRunner`: frozen-code conventions and `__init__` orchestration style. Use when modifying any of these three classes or reviewing changes to them.",
-      "category": "Developer Tools",
-      "product": "SGLang-DAS",
-      "source": {
-        "repo": "HYGON-AI/sglang-das",
-        "ref": "main",
-        "path": ".claude/skills/large-class-style"
-      },
-      "catalog_path": "skills/large-class-style"
-    },
-    {
-      "name": "scripted-runtime-notes",
-      "description": "Requirements for the SGLang scripted runtime, chiefly when to add (vs not add) a harness API. Use for anything related to the scripted runtime.",
-      "category": "Developer Tools",
-      "product": "SGLang-DAS",
-      "source": {
-        "repo": "HYGON-AI/sglang-das",
-        "ref": "main",
-        "path": ".claude/skills/scripted-runtime-notes"
-      },
-      "catalog_path": "skills/scripted-runtime-notes"
-    },
-    {
-      "name": "sglang-bisect-ci-regression",
-      "description": "Investigate consistently failing SGLang CI tests by extracting the failure signature from scheduled or rerun workflows, bisecting the passing/failing commit window, checking runner or hardware specificity, and optionally reproducing on a remote GPU host.",
-      "category": "CI and Reliability",
-      "product": "SGLang-DAS",
-      "source": {
-        "repo": "HYGON-AI/sglang-das",
-        "ref": "main",
-        "path": ".claude/skills/sglang-bisect-ci-regression"
-      },
-      "catalog_path": "skills/sglang-bisect-ci-regression"
-    },
-    {
-      "name": "sglang-cherrypick",
-      "description": "Trigger the bot-cherry-pick workflow for a batch of merged PRs onto a release branch and monitor each run to completion. Use when an SGLang release manager asks to cherry-pick a list of PRs to a release branch.",
-      "category": "Developer Tools",
-      "product": "SGLang-DAS",
-      "source": {
-        "repo": "HYGON-AI/sglang-das",
-        "ref": "main",
-        "path": ".claude/skills/sglang-cherrypick"
-      },
-      "catalog_path": "skills/sglang-cherrypick"
-    },
-    {
-      "name": "sglang-diffusion-benchmark-profile",
-      "description": "Use when benchmarking denoise latency or profiling a diffusion bottleneck in SGLang.",
-      "category": "Diffusion Inference",
-      "product": "SGLang-DAS",
-      "source": {
-        "repo": "HYGON-AI/sglang-das",
-        "ref": "main",
-        "path": "python/sglang/multimodal_gen/.claude/skills/sglang-diffusion-benchmark-profile"
-      },
-      "catalog_path": "skills/sglang-diffusion-benchmark-profile"
-    },
-    {
-      "name": "sglang-diffusion-performance",
-      "description": "Use when choosing the fastest SGLang Diffusion flags for a model, GPU, and VRAM budget.",
-      "category": "Diffusion Inference",
-      "product": "SGLang-DAS",
-      "source": {
-        "repo": "HYGON-AI/sglang-das",
-        "ref": "main",
-        "path": "python/sglang/multimodal_gen/.claude/skills/sglang-diffusion-performance"
-      },
-      "catalog_path": "skills/sglang-diffusion-performance"
-    },
-    {
-      "name": "sglang-prod-incident-triage",
-      "description": "Replay-first debug flow for SGLang serving problems. Use when a live or recent server shows health-check failures, latency or throughput regressions, queue growth, timeouts, distributed stalls, crash dumps, wrong outputs after deploys, or PD/EP/HiCache issues, and the job is to turn the problem into a replay plus the right next debug tool.",
-      "category": "CI and Reliability",
-      "product": "SGLang-DAS",
-      "source": {
-        "repo": "HYGON-AI/sglang-das",
-        "ref": "main",
-        "path": ".claude/skills/sglang-prod-incident-triage"
-      },
-      "catalog_path": "skills/sglang-prod-incident-triage"
-    },
-    {
       "name": "skillhub-contributor",
       "description": "Create, review, and onboard portable Agent Skills into Hygon SkillHub. Use when adding a new SKILL.md, registering a HYGON-AI product repository in components.d, preparing a SkillHub contribution, or diagnosing catalog validation and synchronization failures.",
       "category": "Developer Tools",
@@ -193,18 +25,6 @@
         "path": "skills/skillhub-contributor"
       },
       "catalog_path": "skills/skillhub-contributor"
-    },
-    {
-      "name": "speculative-naming",
-      "description": "Naming conventions for SGLang speculative decoding identifiers. Use when adding, renaming, or reviewing identifiers in speculative decoding code — anything under `python/sglang/srt/speculative/`, related attention backends, scheduler accumulators, IPC fields, observability metrics, or CLI flags.",
-      "category": "Developer Tools",
-      "product": "SGLang-DAS",
-      "source": {
-        "repo": "HYGON-AI/sglang-das",
-        "ref": "main",
-        "path": ".claude/skills/speculative-naming"
-      },
-      "catalog_path": "skills/speculative-naming"
     }
   ]
 }

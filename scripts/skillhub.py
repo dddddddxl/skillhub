@@ -12,6 +12,7 @@ import yaml
 
 
 ROOT = Path(__file__).resolve().parents[1]
+OFFICIAL_GITHUB_OWNER = "HYGON-AI"
 SKILL_NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 REPO_RE = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 REF_RE = re.compile(r"^[A-Za-z0-9._/-]+$")
@@ -61,8 +62,13 @@ def load_components(root=ROOT):
                 raise CatalogError("{}: missing required field '{}'".format(path.relative_to(root), field))
         if not isinstance(data["name"], str) or not data["name"].strip():
             raise CatalogError("{}: name must be a non-empty string".format(path.relative_to(root)))
-        if not REPO_RE.match(str(data["repo"])):
+        repo = str(data["repo"])
+        if not REPO_RE.match(repo):
             raise CatalogError("{}: repo must use owner/name form".format(path.relative_to(root)))
+        owner, _ = repo.split("/", 1)
+        if owner != OFFICIAL_GITHUB_OWNER:
+            raise CatalogError("{}: repo must be owned by {}".format(
+                path.relative_to(root), OFFICIAL_GITHUB_OWNER))
         ref = data.get("ref", "main")
         if not isinstance(ref, str) or not REF_RE.match(ref) or ".." in ref:
             raise CatalogError("{}: ref contains unsafe characters".format(path.relative_to(root)))
