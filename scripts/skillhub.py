@@ -17,6 +17,7 @@ SKILL_NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 REPO_RE = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 REF_RE = re.compile(r"^[A-Za-z0-9._/-]+$")
 MARKDOWN_LINK_RE = re.compile(r"!?\[[^\]]*\]\(([^)]+)\)")
+INLINE_SKILL_PATH_RE = re.compile(r"`((?:\.\.?/)+[^`\s]*SKILL\.md)`")
 SECRET_PATTERNS = (
     ("private key", re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----")),
     ("GitHub token", re.compile(r"\bgh(?:p|o|u|s|r)_[A-Za-z0-9]{20,}\b")),
@@ -159,6 +160,23 @@ def file_tree_digest(path):
     return digest.hexdigest()
 
 
+def validate_inline_skill_dependencies(skill_dir, text, root=ROOT):
+    """Reject references to sibling skills that are absent after installation."""
+    errors = []
+    for target in INLINE_SKILL_PATH_RE.findall(text):
+        candidate = (skill_dir / target).resolve()
+        try:
+            candidate.relative_to(skill_dir.resolve())
+        except ValueError:
+            errors.append("{}/SKILL.md: inline dependency escapes skill directory: {}".format(
+                skill_dir.relative_to(root), target))
+            continue
+        if not candidate.is_file():
+            errors.append("{}/SKILL.md: missing inline skill dependency: {}".format(
+                skill_dir.relative_to(root), target))
+    return errors
+
+
 def validate_catalog(root=ROOT):
     errors = []
     warnings = []
@@ -216,6 +234,9 @@ def validate_catalog(root=ROOT):
                 continue
             if not candidate.exists():
                 errors.append("{}/SKILL.md: broken relative link: {}".format(rel, target))
+
+        errors.extend(validate_inline_skill_dependencies(
+            record["dir"], record["text"], root))
 
         openai_yaml = record["dir"] / "agents" / "openai.yaml"
         if openai_yaml.exists():

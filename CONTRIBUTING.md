@@ -35,6 +35,7 @@ Use catalog ownership only for SkillHub-wide workflows. Initialize a standard sk
 - YAML frontmatter contains only `name` and `description`.
 - The description explains capability and trigger conditions.
 - Keep `SKILL.md` at or below 500 lines; move details into `references/`.
+- Bundle every required dependency inside the skill directory. Do not depend on sibling skills or source-repository files that an installer will not copy.
 - Put repeatable deterministic operations in tested `scripts/`.
 - Do not include credentials, private endpoints, personal data, generated caches, or unrelated documentation.
 - Do not request broader permissions than the workflow requires.

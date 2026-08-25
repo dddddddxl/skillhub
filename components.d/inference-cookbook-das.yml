@@ -1,8 +1,0 @@
-name: Inference Cookbook DAS
-repo: HYGON-AI/inference-cookbook-das
-ref: main
-description: Add and maintain model recipes in the Hygon inference cookbook.
-skills:
-  - path: .claude/skills/bulk-add-model
-    catalog_dir: bulk-add-model
-    category: Model Cookbook

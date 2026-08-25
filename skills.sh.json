@@ -8,13 +8,6 @@
       "skills": [
         "skillhub-contributor"
       ]
-    },
-    {
-      "title": "Model Cookbook",
-      "description": "HYGON-AI skills for model cookbook workflows.",
-      "skills": [
-        "bulk-add-model"
-      ]
     }
   ]
 }
