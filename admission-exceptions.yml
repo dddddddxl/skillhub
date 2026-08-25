@@ -1,0 +1,66 @@
+# Public source skills discovered on 2026-08-25 but not yet admitted to the
+# portable catalog. Fix these issues in the source repository, then register
+# and synchronize the skill again.
+exceptions:
+  - repo: HYGON-AI/inference-cookbook-das
+    path: .claude/skills/add-model
+    reasons:
+      - SKILL.md exceeds the 500-line portability limit.
+      - A relative link escapes the standalone skill directory.
+  - repo: HYGON-AI/sglang-das
+    path: .claude/skills/add-jit-kernel
+    reasons:
+      - SKILL.md exceeds the 500-line portability limit.
+      - A relative Markdown link does not resolve in the standalone package.
+  - repo: HYGON-AI/sglang-das
+    path: .claude/skills/ci-workflow-guide
+    reasons:
+      - A relative link depends on a sibling skill directory.
+  - repo: HYGON-AI/sglang-das
+    path: .claude/skills/clean-startup-log
+    reasons:
+      - Frontmatter contains agent-specific disable-model-invocation metadata.
+  - repo: HYGON-AI/sglang-das
+    path: .claude/skills/cookbook-add-model
+    reasons:
+      - Frontmatter contains agent-specific disable-model-invocation metadata.
+  - repo: HYGON-AI/sglang-das
+    path: .claude/skills/cookbook-migrate-model
+    reasons:
+      - The frontmatter description contains angle brackets rejected by the portable Skill validator.
+  - repo: HYGON-AI/sglang-das
+    path: .claude/skills/cookbook-review-pr
+    reasons:
+      - The frontmatter description contains angle brackets rejected by the portable Skill validator.
+  - repo: HYGON-AI/sglang-das
+    path: .claude/skills/debug-cuda-crash
+    reasons:
+      - SKILL.md exceeds the 500-line portability limit.
+  - repo: HYGON-AI/sglang-das
+    path: .claude/skills/llm-torch-profiler-analysis
+    reasons:
+      - SKILL.md exceeds the 500-line portability limit.
+  - repo: HYGON-AI/sglang-das
+    path: .claude/skills/mechanical-refactor-verify
+    reasons:
+      - Frontmatter contains agent-specific invocation metadata.
+  - repo: HYGON-AI/sglang-das
+    path: .claude/skills/sglang-profile-analyse
+    reasons:
+      - Frontmatter contains agent-specific disable-model-invocation metadata.
+  - repo: HYGON-AI/sglang-das
+    path: .claude/skills/sglang-runtime-context
+    reasons:
+      - SKILL.md exceeds the 500-line portability limit.
+  - repo: HYGON-AI/sglang-das
+    path: .claude/skills/write-sglang-test
+    reasons:
+      - Relative links depend on source-repository files outside the skill.
+  - repo: HYGON-AI/sglang-das
+    path: python/sglang/multimodal_gen/.claude/skills/sglang-diffusion-add-model
+    reasons:
+      - SKILL.md exceeds the 500-line portability limit.
+  - repo: HYGON-AI/sglang-das
+    path: python/sglang/multimodal_gen/.claude/skills/sglang-diffusion-modelopt-quant
+    reasons:
+      - Relative links depend on source-repository tools outside the skill.

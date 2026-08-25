@@ -1,0 +1,55 @@
+name: Sync Product Skills
+
+on:
+  schedule:
+    - cron: "17 1 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: sync-product-skills
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install -r requirements-dev.txt
+      - name: Configure GitHub authentication
+        env:
+          GH_TOKEN: ${{ secrets.SKILLHUB_SYNC_TOKEN || github.token }}
+        run: gh auth setup-git
+      - name: Mirror registered skills
+        run: |
+          python scripts/sync_sources.py
+          python scripts/generate_catalog.py
+          python scripts/validate_skills.py
+          python scripts/generate_catalog.py --check
+      - name: Open or update synchronization pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet && [ -z "$(git status --porcelain)" ]; then
+            echo "No catalog changes."
+            exit 0
+          fi
+          branch="automation/sync-product-skills"
+          git config user.name "hygon-skillhub-bot"
+          git config user.email "hygon-skillhub-bot@users.noreply.github.com"
+          git checkout -B "$branch"
+          git add skills catalog.json skills.sh.json README.md .skillhub-lock.json
+          git commit -m "chore: sync product skills"
+          git push --force origin "$branch"
+          gh pr create --base main --head "$branch" --title "chore: sync product skills" --body "Automated mirror update from registered HYGON-AI product repositories." || \
+            gh pr edit "$branch" --title "chore: sync product skills" --body "Automated mirror update from registered HYGON-AI product repositories."
