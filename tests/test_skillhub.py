@@ -1,6 +1,7 @@
 # Copyright (c) 2026 Hygon Information Technology Co., Ltd.
 # SPDX-License-Identifier: Apache-2.0
 
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -10,6 +11,10 @@ from scripts.skillhub import (
     load_components,
     validate_inline_skill_dependencies,
 )
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+
+from generate_catalog import build_category_index, replace_section  # noqa: E402
 
 
 COMPONENT = """\
@@ -70,6 +75,44 @@ class StandaloneSkillTests(unittest.TestCase):
                 root,
             )
             self.assertEqual(errors, [])
+
+
+def make_record(catalog_dir, category, product, description):
+    return {
+        "component": {"name": product},
+        "spec": {"catalog_dir": catalog_dir, "category": category},
+        "metadata": {"description": description},
+    }
+
+
+class CategoryIndexTests(unittest.TestCase):
+    def test_groups_skills_and_sorts_deterministically(self):
+        index = build_category_index([
+            make_record("vllm-deploy", "Inference", "vLLM Plugin DAS", "Serve models."),
+            make_record("env-check", "Diagnostics", "Cookbook DAS", "Check the host."),
+            make_record("megatron-train", "Training", "Megatron DAS", "Train models."),
+            make_record("sglang-deploy", "Inference", "SGLang DAS", "Serve models."),
+        ])
+        self.assertTrue(index.startswith("4 skills across 3 categories."))
+        self.assertLess(index.index("### Diagnostics"), index.index("### Inference"))
+        self.assertLess(index.index("### Inference"), index.index("### Training"))
+        self.assertLess(index.index("sglang-deploy"), index.index("vllm-deploy"))
+
+    def test_uses_singular_labels_for_one_skill(self):
+        index = build_category_index([
+            make_record("env-check", "Diagnostics", "Cookbook DAS", "Check the host."),
+        ])
+        self.assertTrue(index.startswith("1 skill across 1 category."))
+
+    def test_escapes_table_breaking_characters(self):
+        index = build_category_index([
+            make_record("env-check", "Diagnostics", "Cookbook DAS", "Run a | b\nacross lines."),
+        ])
+        self.assertIn("Run a \\| b across lines.", index)
+
+    def test_requires_readme_markers(self):
+        with self.assertRaisesRegex(ValueError, "categories:start"):
+            replace_section("# Title\n", "<!-- categories:start -->", "<!-- categories:end -->", "body")
 
 
 if __name__ == "__main__":

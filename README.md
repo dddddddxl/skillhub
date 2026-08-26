@@ -27,6 +27,20 @@ npx skills add HYGON-AI/skills --skill skillhub-contributor --agent codex --yes
 
 <!-- catalog:end -->
 
+## Skills by category
+
+<!-- categories:start -->
+
+1 skill across 1 category.
+
+### Developer Tools
+
+| Skill | Product | Description |
+|---|---|---|
+| [`skillhub-contributor`](skills/skillhub-contributor) | SkillHub | Create, review, and onboard portable Agent Skills into Hygon SkillHub. Use when adding a new SKILL.md, registering a HYGON-AI product repository in components.d, preparing a SkillHub contribution, or diagnosing catalog validation and synchronization failures. |
+
+<!-- categories:end -->
+
 ## How publication works
 
 1. Product teams maintain source skills in `skills/<skill-name>/` in their own repository.

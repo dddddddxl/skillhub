@@ -11,12 +11,18 @@ from pathlib import Path
 from skillhub import ROOT, dump_json, validate_catalog
 
 
-START = "<!-- catalog:start -->"
-END = "<!-- catalog:end -->"
+CATALOG_START = "<!-- catalog:start -->"
+CATALOG_END = "<!-- catalog:end -->"
+CATEGORY_START = "<!-- categories:start -->"
+CATEGORY_END = "<!-- categories:end -->"
 
 
 def markdown_escape(value):
     return " ".join(value.split()).replace("|", "\\|")
+
+
+def count_label(count, singular, plural):
+    return "{} {}".format(count, singular if count == 1 else plural)
 
 
 def build_table(components):
@@ -37,12 +43,40 @@ def build_table(components):
     return "\n".join(lines)
 
 
-def replace_catalog(readme, table):
-    if START not in readme or END not in readme:
-        raise ValueError("README.md is missing catalog markers")
-    before, rest = readme.split(START, 1)
-    _, after = rest.split(END, 1)
-    return before + START + "\n\n" + table + "\n\n" + END + after
+def build_category_index(records):
+    categories = OrderedDict()
+    for record in sorted(records, key=lambda item: item["spec"]["catalog_dir"]):
+        categories.setdefault(record["spec"]["category"], []).append(record)
+
+    lines = ["{} across {}.".format(
+        count_label(len(records), "skill", "skills"),
+        count_label(len(categories), "category", "categories"),
+    )]
+    for category, items in sorted(categories.items(), key=lambda item: item[0].lower()):
+        lines.extend([
+            "",
+            "### {}".format(markdown_escape(category)),
+            "",
+            "| Skill | Product | Description |",
+            "|---|---|---|",
+        ])
+        for record in items:
+            name = record["spec"]["catalog_dir"]
+            lines.append("| [`{}`](skills/{}) | {} | {} |".format(
+                name,
+                name,
+                markdown_escape(record["component"]["name"]),
+                markdown_escape(record["metadata"]["description"]),
+            ))
+    return "\n".join(lines)
+
+
+def replace_section(readme, start, end, body):
+    if start not in readme or end not in readme:
+        raise ValueError("README.md is missing {} and {} markers".format(start, end))
+    before, rest = readme.split(start, 1)
+    _, after = rest.split(end, 1)
+    return before + start + "\n\n" + body + "\n\n" + end + after
 
 
 def generated_files(components, records):
@@ -87,8 +121,10 @@ def generated_files(components, records):
 
     readme_path = ROOT / "README.md"
     readme = readme_path.read_text(encoding="utf-8")
+    readme = replace_section(readme, CATALOG_START, CATALOG_END, build_table(components))
+    readme = replace_section(readme, CATEGORY_START, CATEGORY_END, build_category_index(records))
     return {
-        readme_path: replace_catalog(readme, build_table(components)),
+        readme_path: readme,
         ROOT / "catalog.json": dump_json(catalog),
         ROOT / "skills.sh.json": dump_json(skills_sh),
     }
