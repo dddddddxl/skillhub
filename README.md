@@ -1,10 +1,10 @@
 # HYGON-AI Agent Skills
 
-Portable Agent Skills for HYGON-AI software, infrastructure, training, and inference workflows. This repository is the organization-level catalog: product teams own their source skills, while this hub validates, mirrors, and publishes approved versions.
+Portable [Agent Skills](https://agentskills.io/specification) for [HYGON-AI](https://github.com/HYGON-AI) software, infrastructure, training, and inference workflows. This repository is the organization-level catalog: product teams own their source skills, while this hub validates, mirrors, and publishes approved versions.
 
 ## Quick start
 
-After the repository is published, browse or install skills with the standard `skills` CLI:
+After the repository is published, browse or install skills with the standard [`skills` CLI](https://github.com/vercel-labs/skills):
 
 ```bash
 npx skills add HYGON-AI/skills --list
@@ -61,7 +61,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) to onboard a product or skill.
 
 ## Trust model
 
-The catalog publishes reviewed source content; it does not make arbitrary third-party skills trusted. Every product entry records its repository, ref, and source path in `catalog.json`, and synchronized commits are recorded in `.skillhub-lock.json`. Consumers should still review executable scripts and permissions before installation.
+The catalog publishes reviewed source content; it does not make arbitrary third-party skills trusted. Every product entry records its repository, ref, and source path in [`catalog.json`](catalog.json), and synchronized commits are recorded in [`.skillhub-lock.json`](.skillhub-lock.json). Consumers should still review executable scripts and permissions before installation.
 
 ## Source attribution
 
@@ -69,4 +69,4 @@ Product repositories remain the source of truth for mirrored skills. The catalog
 
 ## License
 
-Repository code and catalog-owned skill content are licensed under Apache License 2.0 unless stated otherwise. Mirrored skill content remains under its source license, and imported skills must carry a license compatible with public redistribution.
+Repository code and catalog-owned skill content are licensed under the [Apache License 2.0](LICENSE) unless stated otherwise. Mirrored skill content remains under its source license, and imported skills must carry a license compatible with public redistribution.

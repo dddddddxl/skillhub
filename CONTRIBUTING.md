@@ -4,7 +4,7 @@ Hygon SkillHub is a publication catalog. Product teams own their source skills s
 
 ## Publication boundary
 
-SkillHub publishes skills whose source-of-truth repository is owned by the `HYGON-AI` GitHub organization. Organization ownership alone is not sufficient: each published skill must be either HYGON-authored or substantively adapted and validated for HCU, with a HYGON team responsible for ongoing maintenance.
+SkillHub publishes skills whose source-of-truth repository is owned by the [`HYGON-AI` GitHub organization](https://github.com/HYGON-AI). Organization ownership alone is not sufficient: each published skill must be either HYGON-authored or substantively adapted and validated for HCU, with a HYGON team responsible for ongoing maintenance.
 
 Do not register or mirror an unchanged third-party or upstream skill as a HYGON-AI skill. Link to the canonical upstream skill instead, then request catalog admission after the product team has added and tested the HCU-specific workflow. Preserve all applicable third-party copyright, license, and NOTICE material in an adapted skill.
 
@@ -42,7 +42,7 @@ Use catalog ownership only for SkillHub-wide workflows. Initialize a standard sk
 
 ## Pull request checklist
 
-- [ ] The source-of-truth repository is owned by `HYGON-AI`.
+- [ ] The source-of-truth repository is owned by [`HYGON-AI`](https://github.com/HYGON-AI).
 - [ ] The skill is HYGON-authored or documents substantive, tested HCU adaptations.
 - [ ] A HYGON team owns ongoing maintenance and approved publication.
 - [ ] Third-party attribution, license, and NOTICE requirements are preserved.
@@ -52,4 +52,4 @@ Use catalog ownership only for SkillHub-wide workflows. Initialize a standard sk
 - [ ] `python3 scripts/generate_catalog.py --check` passes.
 - [ ] No mirrored files were edited only in the catalog.
 
-Use `git commit --signoff` so the contribution records Developer Certificate of Origin agreement.
+Use `git commit --signoff` so the contribution records [Developer Certificate of Origin](https://developercertificate.org/) agreement.
