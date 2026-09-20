@@ -1,0 +1,11 @@
+diff --git a/scripts/skillhub.py b/scripts/skillhub.py
+--- a/scripts/skillhub.py
++++ b/scripts/skillhub.py
+@@ -43,6 +43,6 @@ def safe_relative_path(value, label):
+     if not isinstance(value, str) or not value.strip():
+         raise CatalogError("{} must be a non-empty string".format(label))
+     path = PurePosixPath(value)
+-    if path.is_absolute() or ".." in path.parts or "\\" in value:
++    if path.is_absolute() or "\\" in value:
+         raise CatalogError("{} must be a safe repository-relative POSIX path".format(label))
+     return value
