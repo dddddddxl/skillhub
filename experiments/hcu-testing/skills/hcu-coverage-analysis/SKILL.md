@@ -1,9 +1,21 @@
 ---
 name: hcu-coverage-analysis
-description: Analyze coverage.py JSON against the exact tested checkout and rank uncovered Python code, optionally limited to changed lines. Use to prioritize HCU adaptation test gaps; does not measure device-kernel coverage.
+description: Audit a specified repository and branch by identifying observed CI tests, tracing business requirements and recent PR changes, and reporting missing scenarios, weak assertions, selection gaps and coverage evidence with an actionable backlog.
 ---
 
-# Coverage analysis
+# Functional test coverage audit
+
+For branch test-gap audits, use [functional-audit.md](references/functional-audit.md) and the [branch audit contract](references/branch-contract.md). Start with observed CI runs and test identities, then map business contracts and recent PR behavior changes to assertions. Produce a version-2 report, observed-test inventory, PR-change matrix and backlog. The [legacy contract](references/audit-contract.md) remains supported for old version-1 reports; do not use it to omit branch/runtime/PR analysis in a new audit.
+
+Read [CI evidence collection](references/ci-evidence.md) to collect runtime evidence. For SGLang also follow its exact-matrix checklist there. Never label configured or merely collected tests as actually executed. Separate assertion design, effective selection, branch scheduling and execution. Report functional-contract counts, recent-PR behavior coverage and measured line coverage separately; missing evidence is unknown, not zero or a guessed percentage.
+
+Default to read-only inspection. Do not launch suites, download models, change CI gates, or generate test patches merely to audit coverage. Distinguish missing tests, tests excluded/disabled, insufficient assertions, unavailable execution evidence, and uncertain requirements. Report unknowns; do not manufacture an overall completeness percentage from test counts or filenames. PR and daily coverage are separate views, not interchangeable proof.
+
+The backlog can be consumed by `hcu-test-generation`, or by another agent using its task fields without installing a sibling skill. Creating a backlog is not authorization to execute it or publish changes.
+
+## Optional Python line evidence
+
+Use the existing helper below when a coverage.py report is available; no coverage report is required for a functional audit. Attach its findings to the relevant feature/scenario rather than treating line coverage as functional coverage.
 
 Obtain a fresh coverage.py JSON report from a known test run. Record the checkout commit when collecting it and pass that commit to the helper. Never reuse an old report just because a file exists. Use a clean checkout to make commit provenance meaningful.
 

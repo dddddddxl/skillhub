@@ -1,9 +1,11 @@
 ---
 name: hcu-test-generation
-description: Add behavior-based pytest tests for a specified HCU adaptation module or change, separating CPU unit checks and real-device verification. Use when filling test gaps in HCU Python projects.
+description: Close selected HCU test gaps from an audit backlog or a specified change by finding reusable upstream tests, adapting them, or writing behavior-based cases. Use for test implementation after coverage review; distinguish missing tests from CI selection and validation gaps.
 ---
 
 # Generate tests for HCU adaptations
+
+When given a coverage audit/backlog, read [audit-handoff.md](references/audit-handoff.md). Confirm task IDs, source revision and permitted changes; inspect local/version-compatible upstream tests before deciding to copy, adapt or author. Accept a standalone gap description as well; no sibling skill installation is required. Do not treat `validate_existing`, `repair_selection` or `clarify_requirement` as instructions to generate duplicate tests.
 
 Read repository guidance, the selected change and existing tests. Default to the requested module or change, not the entire upstream framework. Derive expected results from documented behavior or an independent reference; do not mirror the implementation as the oracle.
 
