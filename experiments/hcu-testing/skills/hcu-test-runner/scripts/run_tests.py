@@ -27,7 +27,12 @@ def run_process(argv, cwd, log, timeout):
             if os.name == 'posix':
                 os.killpg(p.pid, signal.SIGKILL)
             else:
-                p.kill()
+                # Stop only this test process tree; wrappers can leave a worker
+                # holding the log/device after the parent alone is killed.
+                killed = subprocess.run(['taskkill', '/PID', str(p.pid), '/T', '/F'],
+                                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                if killed.returncode != 0 and p.poll() is None:
+                    p.kill()
             p.wait()
             return p.returncode, True
 
@@ -49,6 +54,20 @@ def classify(exit_code, report, timed_out=False):
         return 'pass', counts
     except (OSError, ET.ParseError):
         return 'invalid_report', {}
+
+
+def case_results(report):
+    """JUnit identity is explicit; do not pretend classname is a verified file path."""
+    try:
+        result = []
+        for case in ET.parse(report).iter('testcase'):
+            outcome = next((state for tag, state in [('error', 'error'), ('failure', 'failed'), ('skipped', 'skipped')]
+                            if case.find(tag) is not None), 'passed')
+            result.append(dict(id='::'.join(filter(None, [case.get('classname'), case.get('name')])),
+                               path=case.get('file'), outcome=outcome))
+        return result
+    except (OSError, ET.ParseError):
+        return []
 
 
 PREFLIGHT = '''import json, torch
@@ -95,6 +114,10 @@ def main():
     def finish(status, code):
         result['status'] = status
         result['duration_seconds'] = round(time.time() - result['started_at_unix'], 3)
+        result['cases'] = case_results(out / 'junit.xml')
+        result['artifact_sha256'] = {p.name: hashlib.sha256(p.read_bytes()).hexdigest()
+                                    for p in (out / 'junit.xml', out / 'test.log', out / 'preflight.log') if p.is_file()}
+        result['identity_note'] = 'JUnit classname/name is not a verified repository path. Dirty runs need separate patch/build identity before audit acceptance.'
         (out / 'result.json').write_text(json.dumps(result, indent=2), encoding='utf-8')
         print(json.dumps(result))
         return code

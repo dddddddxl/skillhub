@@ -52,6 +52,23 @@ class BranchAuditTests(unittest.TestCase):
         self.data['features'][0]['lanes']['daily'].update(coverage='supported',selection='disabled')
         self.assertEqual(self.validate()['features'][0]['lanes']['daily']['coverage'],'supported')
 
+    def test_cross_lane_design_conflict_is_review_prompt_not_autofix(self):
+        self.data['features'][0]['lanes']['pr']['coverage']='supported'
+        self.data['features'][0]['lanes']['daily']['coverage']='gap'
+        d=self.validate()
+        self.assertIn('design_selection_conflict',[w['code'] for w in d['review_warnings']])
+        self.assertEqual(d['features'][0]['lanes']['daily']['coverage'],'gap')
+
+    def test_same_supported_design_with_broken_selection_not_warned(self):
+        for c in self.data['features'][0]['lanes'].values():c['coverage']='supported'
+        self.data['features'][0]['lanes']['daily']['selection']='excluded'
+        self.assertEqual(self.validate()['review_warnings'],[])
+
+    def test_partial_design_without_mapping_warns(self):
+        self.data['features'][0]['tests']=[]
+        for c in self.data['features'][0]['lanes'].values():c['coverage']='partial'
+        self.assertIn('design_without_test_mapping',[w['code'] for w in self.validate()['review_warnings']])
+
     def test_wrong_branch_tip_rejected(self):
         self.data['target']['ref']='refs/heads/nonexistent'
         with self.assertRaises(ValueError):self.validate()
@@ -66,6 +83,70 @@ class BranchAuditTests(unittest.TestCase):
     def test_pass_has_actual_case_identity(self):
         self.observe()
         self.assertTrue(self.validate()['observed_tests'][0]['current_identity'])
+
+    def test_missing_required_case_rejects_feature_pass(self):
+        self.observe()
+        self.data['features'][0]['tests'][0]['case_ids'].append('Test::boundary')
+        with self.assertRaisesRegex(ValueError, 'required cases'):
+            self.validate()
+
+    def test_failed_mapped_case_cannot_be_hidden_by_observation_subset(self):
+        run = self.observe()
+        self.data['features'][0]['tests'][0]['case_ids'].append('Test::boundary')
+        run['cases'].append(dict(id='Test::boundary', path='test_api.py', outcome='failed'))
+        run['counts'].update(tests=2, failed=1)
+        run['status'] = 'test_failure'
+        self.save_run(run)
+        with self.assertRaisesRegex(ValueError, 'required cases'):
+            self.validate()
+
+    def test_lane_specific_equivalent_alternative_is_supported(self):
+        self.observe()
+        feature = self.data['features'][0]
+        feature['tests'][0]['case_ids'].append('Test::alternative')
+        feature['lanes']['pr']['execution_requirements'] = [dict(
+            id='equivalent-behavior', mode='any', cases=[
+                dict(path='test_api.py', id='Test::test_api'), dict(path='test_api.py', id='Test::alternative')])]
+        self.assertEqual(self.validate()['features'][0]['lanes']['pr']['execution'], 'passed')
+
+    def test_all_group_still_requires_every_case(self):
+        self.observe()
+        feature = self.data['features'][0]
+        feature['tests'][0]['case_ids'].append('Test::boundary')
+        feature['lanes']['pr']['execution_requirements'] = [dict(
+            id='required', mode='all', cases=[
+                dict(path='test_api.py', id='Test::test_api'), dict(path='test_api.py', id='Test::boundary')])]
+        with self.assertRaisesRegex(ValueError, 'required cases'):
+            self.validate()
+
+    def test_any_group_cannot_hide_failed_equivalent_case(self):
+        run = self.observe()
+        feature = self.data['features'][0]
+        feature['tests'][0]['case_ids'].append('Test::alternative')
+        feature['lanes']['pr']['execution_requirements'] = [dict(
+            id='equivalent', mode='any', cases=[
+                dict(path='test_api.py', id='Test::test_api'), dict(path='test_api.py', id='Test::alternative')])]
+        run['cases'].append(dict(id='Test::alternative', path='test_api.py', outcome='failed'))
+        run['counts'].update(tests=2, failed=1)
+        run['status'] = 'test_failure'
+        self.save_run(run)
+        with self.assertRaisesRegex(ValueError, 'Failed required cases'):
+            self.validate()
+
+    def test_unrelated_failure_does_not_negate_independent_behavior(self):
+        run = self.observe()
+        run['cases'].append(dict(id='Other::test_other', path='other.py', outcome='failed'))
+        run['counts'].update(tests=2, failed=1)
+        run['status'] = 'test_failure'
+        self.save_run(run)
+        self.assertEqual(self.validate()['features'][0]['lanes']['pr']['execution'], 'passed')
+
+    def test_empty_or_unmapped_requirement_rejected(self):
+        self.observe()
+        for groups in ([], [dict(id='bad', mode='all', cases=[dict(path='test_api.py', id='missing')])]):
+            with self.subTest(groups=groups), self.assertRaises(ValueError):
+                self.data['features'][0]['lanes']['pr']['execution_requirements'] = groups
+                self.validate()
 
     def test_wrong_lane_case_rejected(self):
         run=self.observe();run['lane']='daily';self.save_run(run)

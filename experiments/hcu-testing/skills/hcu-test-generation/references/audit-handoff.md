@@ -8,6 +8,8 @@ Check the snapshot and selected tasks before implementing:
 python scripts/check_handoff.py --repo /checkout --backlog /reports/test-backlog.json --task G1
 ```
 
+Add `--output /new/generation-plan.json` to save a planning envelope outside the checkout. It preserves branch/runtime/PR context, selected tasks, scenario IDs and transitive unselected dependencies; it does not generate or execute tests. Evidence references are not bundled: retain the original audit evidence directory and resolve its artifact paths there, not relative to the new plan. Route hints distinguish investigation/selection repair from code authoring. Choose the framework and file location only after reading the target tests using `test-authoring.md`.
+
 The check requires a clean checkout matching the audit commit and evidence hashes. If it is stale or dirty, inspect the user's changes and refresh the affected audit; do not reset their checkout. It does not validate arbitrary report claims or authorize execution. Agree on task IDs; do not automatically implement the entire backlog. When the user asks only for analysis, stop at the plan.
 
 ## Route by the actual gap
@@ -31,3 +33,7 @@ For each selected gap, give a short disposition: reuse unchanged, adapt, write o
 Use the native collection path to verify intended PR/daily inclusion; do not confuse a direct pytest pass with CI admission. Run positive cases and the requested negative control in an isolated copy with explicit time/device/model limits. Preserve assertions and tolerances; do not fix unrelated production code merely to get green. Performance gates require a platform-specific baseline, not transplanted upstream thresholds.
 
 Return one record per gap: task_id, disposition, source commit, inspected upstream candidates/license, changed paths, case-to-requirement mapping, actual command/results/skips, negative-control result, intended and observed lane selection, unmet prerequisites, and status (`implemented_unverified`, `validated`, `blocked`, or `needs_review`). A patch without execution or lane evidence remains unverified; updating a backlog is not closing the gap. Do not publish, merge, or enable CI automatically.
+
+Use the detailed completion contract in `completion.md`; preserve scenario IDs from the generation plan. A successfully checked handoff is ready for review, not a completed test-generation task.
+
+新任务的 `cases[].id` 使用语义稳定键，交接保留为 `scenario_id`。旧任务没有 id 时兼容生成序号并标记 `identity_mode=legacy_ordinal`；不得在计划产生后重排旧任务再沿用旧结果。新深审的 `analysis` 原样带入计划。验收证据要求可用 `required_evidence` 明确 positive、negative_control、ci_selection、ci_execution；真实 CI 验收不能用本地测试顶替。

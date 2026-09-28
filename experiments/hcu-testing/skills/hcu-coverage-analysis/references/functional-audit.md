@@ -1,5 +1,7 @@
 # Repository PR / daily test audit
 
+新审计还须使用 [behavior-depth.md](behavior-depth.md) 的功能分母台账、稳定场景 ID 和 PR 行为影响记录；本页定义调查过程，深审约定定义结构化证据。默认最近 30 天、最多 20 个详情是调查预算，不是完整 PR 分母；保留已检索的完整候选队列及截断情况。
+
 ## Bound the question before counting
 
 Record repository URL, exact clean source commit, target platform, lanes (PR, daily/nightly, optional manual/release), and reviewed scope. A dirty checkout needs an isolated snapshot with a recorded revision; do not silently discard edits. Ask only for choices that change the scope materially. If CI logs or requirements are unavailable, continue a static audit and label runtime/requirement uncertainty.
@@ -33,6 +35,8 @@ CI execution is another axis. Prefer recent artifacts with source commit, platfo
 For each recent PR, inspect its actual base/head diff and target-branch inclusion, not only its title. Use `changes.py` on already fetched immutable refs to enumerate paths and hunks, then interpret behavior changes, backend dispatch, error/fallback paths, removed tests and altered assertions. Map each reviewed behavior to feature IDs, concrete test assertions and observed execution. Require a follow-up for unreviewed PRs or uncovered changes; documentation-only exclusions need an explicit rationale. Use shared follow-ups for global scheduling or missing artifacts instead of one duplicate task per feature. See `branch-contract.md` for version 2.
 
 Conclude with a semantic challenge pass: inspect potential alternative coverage, identify claim scope and whether a proposed case catches a concrete wrong behavior. Recheck actual matrix jobs rather than suite unions. State where this review is incomplete; schema validation does not establish semantic truth.
+
+Review `review_warnings` after rendering. If the same behavior has supported assertions in PR but a broken nightly include path, keep assertion design supported and describe the nightly selection defect separately. If daily genuinely requires a stronger behavior, split the contract rather than silently changing its meaning between lanes. A `confirmed_gap` can be a selection gap; it does not necessarily request a new test. Do not mark design `partial` without mapping the portion supported by actual assertions. Report reviewed/deferred PR counts, not just retrieved counts.
 
 Prepare input using `audit-contract.md`, then run:
 

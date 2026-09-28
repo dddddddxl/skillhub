@@ -1,18 +1,40 @@
 ---
 name: hcu-test-generation
-description: Close selected HCU test gaps from an audit backlog or a specified change by finding reusable upstream tests, adapting them, or writing behavior-based cases. Use for test implementation after coverage review; distinguish missing tests from CI selection and validation gaps.
+description: 根据覆盖审计清单或指定代码变更，复用、适配上游测例，或编写 pytest/unittest 测例补齐海光测试缺口；分别记录实际执行、反例验证和 CI 选择结果。适用于明确范围的补测，不默认生成全仓测试。
 ---
 
-# Generate tests for HCU adaptations
+# 海光测例生成与补测
 
-When given a coverage audit/backlog, read [audit-handoff.md](references/audit-handoff.md). Confirm task IDs, source revision and permitted changes; inspect local/version-compatible upstream tests before deciding to copy, adapt or author. Accept a standalone gap description as well; no sibling skill installation is required. Do not treat `validate_existing`, `repair_selection` or `clarify_requirement` as instructions to generate duplicate tests.
+默认用中文输出方案、说明和完成报告；保留既有代码标识符、接口字段和仓库要求的测试命名。
 
-Read repository guidance, the selected change and existing tests. Default to the requested module or change, not the entire upstream framework. Derive expected results from documented behavior or an independent reference; do not mirror the implementation as the oracle.
+## 接收任务并限定范围
 
-Identify applicable risks: device selection and fallback, dtype/shape/layout boundaries, empty inputs, error handling, and distributed behavior. Use CPU tests for pure configuration logic. Label device tests accurately and run them on actual HCU hardware before claiming hardware support. Mock only external dependencies, not the computation being validated.
+收到覆盖审计清单时，阅读[审计交接说明](references/audit-handoff.md)，确认任务 ID、源代码版本和允许修改的范围。先检查本地及版本兼容的上游测试，再决定复用、适配或新写。也可处理独立缺口描述，不依赖其他 Skill 安装。
 
-For numerical comparisons, document dtype-specific tolerances and the reference implementation. Exercise at least one intentional incorrect behavior to confirm the new assertion catches it, in an isolated copy; never alter the user's working production code for this check.
+不要把 `validate_existing`（验证已有测例）、`repair_selection`（修复选择配置）或 `clarify_requirement`（澄清需求）误当成新写测试的任务。默认只处理选定模块或变更，不扩展为整个项目。
 
-Run the repository's existing test entrypoint or pytest directly, capture exit code and JUnit results. No sibling skill is required. A missing device means unexecuted hardware tests, not a pass. Diagnose failed tests as test error, product defect, environment issue, or unsupported behavior. Do not remove assertions, add skips/xfails, increase tolerances or change product behavior merely to pass.
+## 设计并实现测例
 
-Deliver the test patch, actual commands and results, assumptions behind expected values, and untested risks. Keep CPU, single-device and distributed claims separate. Do not publish or merge generated tests unless requested.
+阅读[测例编写流程](references/test-authoring.md)。结合仓库说明、被测代码与现有测试，将缺口拆成场景矩阵：输入、预期结果、独立判定依据、测试 ID 和运行环境。按实际入口及现有文件选择 pytest 或 unittest，优先扩展原测试。不要强制 pytest，也不要统一输出到 CI 不会收集的 `tests/auto_ut`。不依赖外部编写 Skill 或 MindSpeed 专用执行器。
+
+按需求检查设备选择与回退、dtype/shape/layout 边界、空输入、异常处理及分布式行为。纯配置逻辑可用 CPU 测试；涉及设备计算的正确性不能用 mock 替代。数值测试应说明参考实现和精度容差，不能把被测实现本身当成唯一标准。
+
+确需新建 pytest 文件时，按[模板选用说明](references/templates.md)选择普通逻辑、设备路由或数值正确性骨架；优先复用现有文件，不给 unittest 入口强套 pytest。模板未填充会明确失败，不是可直接提交的业务测例。
+
+## 执行与反向验证
+
+只运行已授权的选定测试，使用仓库原生入口或合适的 pytest 命令，保存退出码、实际执行/跳过数量及 JUnit 或原生日志。缺设备、全跳过或零收集都不是通过；CPU 通过不代表 HCU 内核已验证。
+
+先验证正确实现，再在隔离副本中引入对应的错误行为，确认目标断言能够失败。导入失败或环境错误不能算反例验证成功；不要为此修改用户的工作代码。
+
+失败时区分测试错误、产品缺陷、环境问题和不支持的行为。不得为了变绿删除断言、增加 skip/xfail、放宽容差或修改无关产品逻辑。环境不满足时说明前置条件，禁止无限循环修改到通过。
+
+## 交付并回填
+
+返回测试补丁、命令与结果、预期依据和未验证范围，区分 CPU、单卡、多卡。审计任务按[完成记录约定](references/completion.md)回填任务 ID、实际测试的提交/补丁身份、场景结果、反例结果、CI 选择及真实 CI 执行。
+
+有 generation-plan.json 时运行 `scripts/check_completion.py --plan /evidence/generation-plan.json --completion /evidence/completion.json`，核对逐场景结果、工件 hash、正反例和验收要求。校验只证明记录一致，不证明 oracle 独立或业务判断正确；生成后仍须复核目标断言和未覆盖范围。
+
+生成了文件或本地运行通过，都不等于缺口已关闭。未获请求，不自动发布、合并或启用 CI。
+
+CI 接入前，用目标分支的运行器验证测试注册与 suite 是否仍有效，并确认实际选择结果。原文件已有注册不代表当前可用；全局注册检查可能先于单文件筛选失败。将此类问题单独记录为选择阻塞，不顺带修改无关测试。若为隔离单元验证替换了仓库测试基类或加载入口，必须说明替换范围，不能称为原生 CI 通过。

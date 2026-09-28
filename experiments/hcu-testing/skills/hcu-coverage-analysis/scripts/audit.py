@@ -164,6 +164,9 @@ def validate(data, repo, evidence_root):
         sys.path.insert(0, str(Path(__file__).resolve().parent))
         from branch_contract import validate_v2
         validate_v2(data, repo, refs, runs, git, require)
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from semantic_analysis import validate as validate_semantics
+    validate_semantics(data, refs, require)
     data['source_fingerprints'] = fingerprints
     data['validation_scope'] = 'References, hashes and structural consistency checked; semantic judgments are agent-authored'
     return data
@@ -176,11 +179,12 @@ def markdown(data):
     if data['schema_version'] == 2:
         sys.path.insert(0, str(Path(__file__).resolve().parent))
         from branch_contract import overview
+        from semantic_analysis import markdown as semantic_markdown
         # Keep the legacy detailed source/assertion/backlog tables, prefixed by
         # independent axes and actual observation/PR matrices.
         old = copy.deepcopy(data)
         old['schema_version'] = 1
-        return overview(data) + '\n' + markdown(old)
+        return overview(data) + '\n' + semantic_markdown(data) + '\n' + markdown(old)
     lines = ['# 功能测试覆盖审计', '', f"仓库：{data['repository']}", f"版本：`{data['source_commit']}`", '',
              f"范围：{scope['extent']}；平台：{scope['platform']}", '功能分母依据：' + scope['feature_basis'], '',
              '本报告区分静态设计覆盖与实际执行证据；不提供推测的全仓功能覆盖率。', '', '## 限制与未知', '']
@@ -236,6 +240,8 @@ def main():
             if result['schema_version'] == 2:
                 for key in ('target', 'runtime', 'recent_prs'):
                     backlog[key] = result[key]
+                if 'analysis' in result:
+                    backlog['analysis'] = result['analysis']
                 (out / 'observed-tests.json').write_text(json.dumps(result['observed_tests'], ensure_ascii=False, indent=2), encoding='utf-8')
                 (out / 'pr-change-matrix.json').write_text(json.dumps(result['recent_prs'], ensure_ascii=False, indent=2), encoding='utf-8')
             (out / 'test-backlog.json').write_text(json.dumps(backlog, ensure_ascii=False, indent=2), encoding='utf-8')

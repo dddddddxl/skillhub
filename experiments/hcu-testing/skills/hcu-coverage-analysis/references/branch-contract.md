@@ -58,6 +58,12 @@ A cell with partial/gap/unknown design, excluded/disabled/unknown/conditional se
 
 For a passed behavior, each reviewed `tests` entry must list the applicable `case_ids`, and the selected observations must match both path and ID. Another passing method in the same file is insufficient. File-granularity logs remain in the observed inventory, but cannot establish `execution: passed` for a specific behavior; retain `not_verified` until the relevant method-level results are available.
 
+### 必要场景与替代测例
+
+每个 lane 可增加 `execution_requirements`。每组有稳定 `id`、`mode: all|any` 和 `cases: [{path, id}]`；引用必须来自本功能的 tests/case_ids。所有组均须满足：all 要求每个测例通过；any 表示经业务审阅确认等价的替代测例，至少一个通过。不得为了隐藏失败而把必要场景改成替代关系。
+
+未提供该字段的旧 v2 报告按功能所有已映射 case_ids 都是必要测例处理。PR/daily 测例不同应显式声明每个 lane 的集合。passed 要求覆盖完整必要集合，并核对引用 job/attempt 中所有相关结果，不能只挑选成功项。缺测例、跳过、失败和同一引用范围中相互矛盾的结果都不能满足 all 组。无关测试失败不影响独立行为结论，但仍保留 job 整体结果；重跑必须选择清晰的 attempt 范围并披露历史失败。
+
 Each feature adds `finding: {kind: "confirmed_gap|risk|improvement|unknown|supported", confidence: "high|medium|low", rationale: "...", counterevidence: "paths/alternatives inspected and limitations"}`. Confidence is evidence quality, not risk priority. Add `change_ids` to link recent PR behavior IDs (empty when unrelated).
 
 Tasks retain legacy fields and optionally add `depends_on` task IDs. Dependencies must exist and be acyclic. Downstream handoff lists prerequisites explicitly; selecting a task does not silently authorize executing its dependencies.
@@ -65,5 +71,7 @@ Tasks retain legacy fields and optionally add `depends_on` task IDs. Dependencie
 ## Coverage interpretation and output
 
 Render produces `report.md`, `audit.json`, `test-backlog.json`, `observed-tests.json`, and `pr-change-matrix.json`. Summary counts distinguish all reported contracts, static supported contracts, current observed contracts, unknowns and PR behavior coverage. These are counts for an explicitly reviewed denominator, not full-repository completeness. Do not turn registration/file totals into a percentage.
+
+`audit.json.review_warnings` contains non-blocking semantic review prompts for cross-lane supported/gap conflicts and partial design without test mappings. They do not automatically change agent judgments or prove a defect. Resolve them in the evidence or explain the remaining scope. File-level skipped counts are file counts only; the report explicitly warns that internal methods may still skip.
 
 Optional line evidence still uses `analyze.py`: only measured statement totals at the matching SHA can produce line/changed-line percentages. If no instrumented artifacts exist, say not measured. No invented branch/kernel coverage. Preserve new fields in handoff so generation can locate the changed behavior and distinguish selection repair from authoring tests.

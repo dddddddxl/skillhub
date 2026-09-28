@@ -5,6 +5,27 @@ from pathlib import PurePosixPath
 import re
 
 
+def execution_groups(feature, cell, require):
+    """Explicit lane obligations; old v2 reports conservatively require all mapped cases."""
+    mapped = {(t['path'], case_id) for t in feature['tests'] for case_id in t.get('case_ids', [])}
+    groups = cell.get('execution_requirements')
+    if groups is None:
+        return [('legacy-all', 'all', mapped)] if mapped else []
+    require(isinstance(groups, list) and bool(groups), 'Execution requirements cannot be empty')
+    result, seen = [], set()
+    for group in groups:
+        ident = group.get('id')
+        require(isinstance(ident, str) and ident.strip() and ident not in seen, 'Unique execution requirement ID required')
+        seen.add(ident)
+        require(group.get('mode') in {'all', 'any'}, 'Execution requirement mode must be all or any')
+        cases = group.get('cases')
+        require(isinstance(cases, list) and bool(cases), 'Execution requirement needs cases')
+        keys = {(c['path'], c['id']) for c in cases}
+        require(len(keys) == len(cases) and keys <= mapped, 'Execution requirement references unmapped/duplicate cases')
+        result.append((ident, group['mode'], keys))
+    return result
+
+
 def validate_v2(d, repo, refs, runs, git, require):
     def string(x):
         return isinstance(x, str) and bool(x.strip())
@@ -84,9 +105,12 @@ def validate_v2(d, repo, refs, runs, git, require):
             observations = cell.get('observations', [])
             require(isinstance(observations, list), 'Observation list required')
             selected = []
+            referenced_runs = {}
+            groups = execution_groups(f, cell, require)
             for obs in observations:
                 require(obs['evidence'] in ids and obs['evidence'] in cell['evidence'], 'Observation not referenced by cell/runtime')
                 run = next(r for r in observed if r['evidence'] == obs['evidence'])
+                referenced_runs[obs['evidence']] = run
                 require(run['current_identity'] and run['lane'] == lane, 'Observation has wrong branch/SHA/platform/repository/lane or unresolved build')
                 cases = {c['id']:c for c in run['cases']}
                 require(obs['case_ids'] and len(set(obs['case_ids'])) == len(obs['case_ids']) and set(obs['case_ids']) <= cases.keys(), 'Unknown observed test IDs')
@@ -104,6 +128,20 @@ def validate_v2(d, repo, refs, runs, git, require):
                 require(acceptable.get(cell['execution'], False), 'Observed outcomes do not support execution claim')
                 if cell['execution'] == 'passed':
                     require(cell['selection'] == 'included' and cell['scheduling'] == 'verified', 'Pass requires current selected/scheduled lane')
+                    require(bool(groups), 'Pass requires an explicit nonempty mapped case set')
+                    # Inspect every relevant case in the cited job attempts, not just
+                    # the caller-selected successful observation subset.
+                    results = collections.defaultdict(set)
+                    for run in referenced_runs.values():
+                        for case in run['cases']:
+                            results[(case['path'], case['id'])].add(case['outcome'])
+                    selected_keys = {(c['path'], c['id']) for c in selected}
+                    for ident, mode, keys in groups:
+                        require(not any(results[key] & {'failed', 'error'} for key in keys),
+                                'Failed required cases cannot be hidden by alternatives: ' + ident)
+                        passes = [key in selected_keys and results[key] == {'passed'} for key in keys]
+                        satisfied = all(passes) if mode == 'all' else any(passes)
+                        require(satisfied, 'Incomplete or nonpassing required cases: ' + ident)
     prs = d['recent_prs']
     require(string(prs['since']) and string(prs['until']) and prs['status'] in {'reviewed','partial','unavailable'} and string(prs['reason']), 'PR window/status required')
     def timestamp(value):
@@ -135,6 +173,17 @@ def validate_v2(d, repo, refs, runs, git, require):
             require(f['id'] in changes[id]['feature_ids'], 'Inconsistent PR/feature mapping')
     for id,change in changes.items():
         require(all(id in features[f]['change_ids'] for f in change['feature_ids']), 'Missing reverse PR mapping')
+    # Review prompts, not fabricated semantic decisions. Keep old v2 inputs valid.
+    warnings=[]
+    for f in features.values():
+        designs={c['coverage'] for c in f['lanes'].values()}
+        if 'supported' in designs and 'gap' in designs:
+            warnings.append(dict(code='design_selection_conflict',feature_id=f['id'],
+                message='同一行为在不同通道同时标为 supported/gap；复核是否仅选择/调度不同。若断言已支持同一合同，设计应一致；若合同不同应拆分。'))
+        if not f['tests'] and designs & {'supported','partial'}:
+            warnings.append(dict(code='design_without_test_mapping',feature_id=f['id'],
+                message='声明部分/完整设计覆盖但没有测例映射；补证据或改为 unknown，不能由模块名推断。'))
+    d['review_warnings']=warnings
 
 
 def overview(d):
@@ -142,14 +191,17 @@ def overview(d):
         return str(s).replace('|','\\|').replace('\n',' ')
     lines=['# 分支测试缺口审计 v2','',f"分支：`{d['target']['branch']}`；SHA：`{d['source_commit']}`",'',
            '## 实际 CI 观察（不是配置文件数）','',d['runtime']['status']+'：'+d['runtime']['reason'],'',
-           '| Run / Job / Attempt | 分支 / SHA | 通道 | 粒度 | 已通过 / 失败 / 跳过 | 当前身份 |','|---|---|---|---|---|---|']
+           'file 粒度计数仅为文件结果，跳过=0不代表内部方法零跳过；case 粒度才是方法结果。不同粒度不相加计算通过率。','',
+           '| Run / Job / Attempt | 分支 / SHA | 通道 | 粒度 | 已通过 / 失败 / 跳过 | 运行状态 | 当前身份 |','|---|---|---|---|---|---|---|']
     for r in d['observed_tests']:
         c=r['counts']
         passed=sum(x['outcome']=='passed' for x in r['cases'])
-        vals=[f"{r['run_id']}/{r['job_id']}/{r['attempt']}",r['branch']+' / '+r['source_commit'],r['lane'],r['granularity'],f"{passed} / {c['failed']+c['errors']} / {c['skipped']}",r['current_identity']]
+        vals=[f"{r['run_id']}/{r['job_id']}/{r['attempt']}",r['branch']+' / '+r['source_commit'],r['lane'],r['granularity'],f"{passed} / {c['failed']+c['errors']} / {c['skipped']}",r['status'],r['current_identity']]
         lines.append('| '+' | '.join(map(esc,vals))+' |')
     if not d['observed_tests']:
         lines+=['','没有可核验测试 ID 的 CI 工件；实际跑了哪些仍未知。']
+    lines+=['','## 需要复核的结论','']
+    lines += ['- '+esc(w['feature_id'])+'：'+w['message'] for w in d.get('review_warnings',[])] or ['未发现结构性提示；这不代表语义审阅完成。']
     lines+=['','## 四个独立维度','','| 功能 | lane | 断言设计 | 有效选择 | 分支调度 | 实际执行 | 分类 / 置信 | 后续任务 |','|---|---|---|---|---|---|---|---|']
     for f in d['features']:
         for lane,c in f['lanes'].items():
@@ -165,6 +217,8 @@ def overview(d):
         if not pr.get('changes'):
             lines.append('| '+' | '.join(map(esc,[pr['id'],pr['state']+'/'+pr['in_target'],pr['review']+': '+pr['reason'],'—','unknown',','.join(pr.get('followups',[]))]))+' |')
     counts=collections.Counter(c['coverage'] for c in changes)
+    reviews=collections.Counter(p['review'] for p in d['recent_prs']['items'])
+    lines+=['',f"已列 PR：{len(d['recent_prs']['items'])}；已审：{reviews['reviewed']}；待审：{reviews['deferred']}；有理由排除：{reviews['excluded']}。截断历史另见范围说明，不能把检索数量当已审数量。"]
     lines+=['',f"本轮业务合同数：{len(d['features'])}；审阅 PR 行为变化数：{len(changes)}；变化覆盖计数：{dict(counts)}。",'代码行/分支覆盖率：本报告未计算；仅独立、同 SHA 的仪器化工件可以支持该百分比。','',
             '## 反证复核','']
     for f in d['features']:

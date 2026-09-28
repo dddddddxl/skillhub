@@ -28,6 +28,10 @@ class RunnerCLITests(unittest.TestCase):
         self.assertEqual(result['status'], 'pass')
         self.assertIsNone(result['dirty'])
         self.assertEqual(len(result['selected_test_sha256']['test_sample.py']), 64)
+        self.assertEqual(result['cases'][0]['id'], 'test_sample::test_ok')
+        self.assertEqual(result['cases'][0]['outcome'], 'passed')
+        self.assertEqual(len(result['artifact_sha256']['junit.xml']), 64)
+        self.assertEqual(len(result['artifact_sha256']['test.log']), 64)
 
     def test_failing(self):
         rc, result = self.run_case('def test_bad():\n    assert False\n')
@@ -38,6 +42,7 @@ class RunnerCLITests(unittest.TestCase):
         rc, result = self.run_case('import pytest\n@pytest.mark.skip(reason="sample")\ndef test_skip(): pass\n')
         self.assertNotEqual(rc, 0)
         self.assertEqual(result['status'], 'no_tests_executed')
+        self.assertEqual(result['cases'][0]['outcome'], 'skipped')
 
     def test_timeout(self):
         rc, result = self.run_case('import time\ndef test_slow(): time.sleep(30)\n')

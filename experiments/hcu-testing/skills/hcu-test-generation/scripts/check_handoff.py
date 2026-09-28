@@ -43,11 +43,48 @@ def check(repo, backlog, selected):
             for dependency in tasks[id].get('depends_on', []): visit(dependency)
             visiting.remove(id); done.add(id)
         for id in tasks: visit(id)
-    dependencies = sorted({dep for id in selected for dep in tasks[id].get('depends_on', [])} - set(selected))
-    return {'status': 'ready_for_review', 'repository': backlog['repository'], 'source_commit': backlog['source_commit'],
+    dependencies=set()
+    def collect_dependencies(id, trail):
+        if id in trail or id not in tasks:
+            raise ValueError('Unknown or cyclic task dependency')
+        for dep in tasks[id].get('depends_on', []):
+            if dep not in dependencies:
+                collect_dependencies(dep, trail | {id})
+                dependencies.add(dep)
+    for id in selected:collect_dependencies(id,set())
+    actions={'clarify_requirement':'investigate_contract', 'validate_existing':'verify_existing',
+             'repair_selection':'propose_ci_repair', 'upstream_first':'search_then_adapt_or_write', 'write':'design_then_write'}
+    scenario_map, seen = {}, set()
+    for id in selected:
+        scenario_map[id] = []
+        for i, case in enumerate(tasks[id]['cases']):
+            sid = case.get('id', id + ':' + str(i + 1))
+            if not isinstance(sid, str) or not sid.strip() or sid in seen:
+                raise ValueError('Scenario IDs must be nonempty and unique across selected tasks')
+            seen.add(sid)
+            scenario_map[id].append(dict(case, scenario_id=sid,
+                identity_mode='explicit' if 'id' in case else 'legacy_ordinal'))
+    result = {'plan_schema_version': 1, 'status': 'ready_for_review', 'repository': backlog['repository'], 'source_commit': backlog['source_commit'],
             'platform': backlog['scope']['platform'], 'tasks': [tasks[x] for x in selected],
-            'unselected_dependencies': dependencies,
+            'scope': backlog['scope'], 'source_fingerprints': backlog['source_fingerprints'],
+            'evidence': backlog.get('evidence', []),
+            'unselected_dependencies': sorted(dependencies-set(selected)),
+            'planning': [{'task_id':id, 'next_action':actions[tasks[id]['route']],
+                          'framework':'inspect_repository', 'test_location':'prefer_existing_test',
+                          'scenarios':scenario_map[id]}
+                         for id in selected],
             'authorization': 'No code, CI or execution changes authorized by this check'}
+    for key in ('target','runtime','recent_prs','analysis'):
+        if key in backlog:result[key]=backlog[key]
+    return result
+
+
+def save_plan(path,repo,result):
+    path,repo=path.resolve(),repo.resolve()
+    if path==repo or repo in path.parents:
+        raise ValueError('Plan output must be outside the target checkout')
+    with path.open('x',encoding='utf-8') as stream:
+        json.dump(result,stream,ensure_ascii=False,indent=2)
 
 
 def main():
@@ -55,9 +92,15 @@ def main():
     p.add_argument('--repo', required=True, type=Path)
     p.add_argument('--backlog', required=True, type=Path)
     p.add_argument('--task', action='append', required=True)
+    p.add_argument('--output', type=Path, help='New plan JSON outside target checkout; never executes tests')
     a = p.parse_args()
     try:
-        print(json.dumps(check(a.repo.resolve(), json.loads(a.backlog.read_text(encoding='utf-8')), a.task), ensure_ascii=False, indent=2))
+        result=check(a.repo.resolve(), json.loads(a.backlog.read_text(encoding='utf-8')), a.task)
+        if a.output:
+            save_plan(a.output,a.repo,result)
+            print(json.dumps(dict(status=result['status'],output=str(a.output.resolve()),selected_tasks=a.task),ensure_ascii=False))
+        else:
+            print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
     except (OSError, KeyError, TypeError, ValueError, subprocess.CalledProcessError) as exc:
         print(json.dumps({'status': 'blocked', 'reason': str(exc)}))
