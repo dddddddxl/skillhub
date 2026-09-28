@@ -15,7 +15,7 @@ from run_tests import PREFLIGHT, git, run_process
 
 def workflow_files(path, suite):
     """Read literal native-runner commands; never evaluate shell or expressions."""
-    data = yaml.safe_load(path.read_text())
+    data = yaml.safe_load(path.read_text(encoding='utf-8'))
     matches = []
     for job in data['jobs'].values():
         for step in job.get('steps', []):
@@ -122,7 +122,7 @@ def main():
     result['collection_exit_code'] = rc
     if rc or expired:
         return finish('collection_failed')
-    enabled = enabled_files((out / 'collection.log').read_text())
+    enabled = enabled_files((out / 'collection.log').read_text(encoding='utf-8'))
     if enabled != {str((repo / 'test' / f).resolve()) for f in selected}:
         return finish('selection_not_enabled')
     if not a.execute:
@@ -131,7 +131,7 @@ def main():
     probe = 'import json,sglang; print(json.dumps({"module":sglang.__file__}))'
     rc, expired = run_process([sys.executable, '-c', probe], repo / 'test', out / 'source-probe.log', min(60, a.timeout))
     try:
-        module = Path(json.loads((out / 'source-probe.log').read_text().strip().splitlines()[-1])['module']).resolve()
+        module = Path(json.loads((out / 'source-probe.log').read_text(encoding='utf-8').strip().splitlines()[-1])['module']).resolve()
         result['sglang_module'] = str(module)
         valid_source = (repo / 'python').resolve() in module.parents
     except (ValueError, IndexError, KeyError, TypeError):
@@ -144,13 +144,13 @@ def main():
         if rc or expired:
             return finish('environment_blocked')
         try:
-            result['device'] = json.loads((out / 'preflight.log').read_text().strip().splitlines()[-1])
+            result['device'] = json.loads((out / 'preflight.log').read_text(encoding='utf-8').strip().splitlines()[-1])
         except (ValueError, IndexError):
             return finish('environment_blocked')
     result['command'] = cmd + ['--timeout-per-file', str(a.timeout)]
     rc, expired = run_process(result['command'], repo / 'test', out / 'test.log', a.timeout)
     result['exit_code'] = rc
-    status, counts = classify_native(rc, (out / 'test.log').read_text(errors='replace'), repo / 'test' / selected[0], expired)
+    status, counts = classify_native(rc, (out / 'test.log').read_text(encoding='utf-8', errors='replace'), repo / 'test' / selected[0], expired)
     return finish(status, counts)
 
 

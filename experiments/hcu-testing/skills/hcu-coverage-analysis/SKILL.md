@@ -1,11 +1,19 @@
 ---
 name: hcu-coverage-analysis
-description: 审计指定仓库及分支的测试缺口：确认 CI 实际运行的测例，结合业务合同和近期 PR 变更，识别缺失场景、弱断言及测试选择问题，输出可追溯报告与补测清单。
+description: 审计仓库分支或单个 PR 的测试与 CI 覆盖：结合行为变更、具体断言、有效测试选择和实际运行证据，识别缺测例、弱断言、CI 故障和证据不足，输出中文报告及可交接补测清单。适用于 AI Review agent 审查 PR 的 CI 质量。
 ---
 
 # 海光功能测试覆盖审计
 
 默认用中文输出审计报告、缺口理由和补测建议；保留代码路径、任务 ID 与机器可读字段名称。
+
+## 单个 PR 的 CI Review
+
+输入为 PR URL/编号，或调用方明确要求审查某个 PR 的测试与 CI 时，阅读[PR CI 审查流程与数据约定](references/pr-ci-review.md)。使用 `pr_snapshot.py` 收集 PR、变更文件、checks/statuses、run/job 和可读取的门禁配置；使用 `pr_review.py` 校验并生成中文 `report.md`、`review.json` 和 `test-backlog.json`。
+
+从固定 base/head 的行为变化出发，核查具体测试断言、workflow 触发条件、矩阵和选择参数。PR head、测试合并提交、合入后的发布提交分别记录。绿色 job、PR 描述中的“已测试”和测试注册都不能代替具体场景执行证据；日志拿不到时仍完成静态审查，保留未知项。
+
+给 AI Review agent 的调用方式和实际 SGLang 示例见[调用示例](references/pr-ci-example.md)。此模式审查 PR 变更范围；全仓功能分母及近期多个 PR 的审计走下面的分支模式。默认只读，审查意见输出到调用方；补测、重跑 CI、发布评论按用户已经授权的范围执行。
 
 ## 分支测试缺口审计
 

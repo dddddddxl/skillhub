@@ -2,6 +2,7 @@
 import argparse
 import hashlib
 import json
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -12,6 +13,13 @@ def check(repo, backlog, selected):
         return subprocess.check_output(['git', '-c', 'safe.directory=' + str(repo), '-C', str(repo), *args], text=True).strip()
     if backlog.get('schema_version') not in (1, 2) or backlog.get('source_commit') != git('rev-parse', 'HEAD') or git('status', '--porcelain'):
         raise ValueError('Unsupported/stale handoff or dirty checkout; refresh the audit')
+    if backlog.get('origin_mode') == 'pr_ci_review':
+        context = backlog.get('pr_context', {})
+        if context.get('head_sha') != backlog['source_commit'] or not all(
+                re.fullmatch('[0-9a-f]{40}', context.get(k, '')) for k in ('base_sha', 'head_sha', 'diff_base')):
+            raise ValueError('PR context is missing or stale')
+        if context['diff_base'] == context['head_sha']:
+            raise ValueError('PR diff base cannot equal head')
     if not isinstance(backlog.get('source_fingerprints'), dict) or not backlog['source_fingerprints']:
         raise ValueError('Source fingerprints required')
     for path, expected in backlog['source_fingerprints'].items():
@@ -74,7 +82,7 @@ def check(repo, backlog, selected):
                           'scenarios':scenario_map[id]}
                          for id in selected],
             'authorization': 'No code, CI or execution changes authorized by this check'}
-    for key in ('target','runtime','recent_prs','analysis'):
+    for key in ('target','runtime','recent_prs','analysis','origin_mode','pr_context'):
         if key in backlog:result[key]=backlog[key]
     return result
 

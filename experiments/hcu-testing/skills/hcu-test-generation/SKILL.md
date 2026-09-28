@@ -13,6 +13,8 @@ description: 根据覆盖审计清单或指定代码变更，复用、适配上�
 
 不要把 `validate_existing`（验证已有测例）、`repair_selection`（修复选择配置）或 `clarify_requirement`（澄清需求）误当成新写测试的任务。默认只处理选定模块或变更，不扩展为整个项目。
 
+收到 `origin_mode=pr_ci_review` 的清单时，用 `scripts/check_handoff.py` 验证并保留 `pr_context`（PR、base/head、diff 基线）和稳定场景 ID。不要切到分支最新版本后沿用旧结论；PR head 更新需要重新审查。审查建议不是自动改 CI 或执行不可信 PR 代码的授权。
+
 ## 设计并实现测例
 
 阅读[测例编写流程](references/test-authoring.md)。结合仓库说明、被测代码与现有测试，将缺口拆成场景矩阵：输入、预期结果、独立判定依据、测试 ID 和运行环境。按实际入口及现有文件选择 pytest 或 unittest，优先扩展原测试。不要强制 pytest，也不要统一输出到 CI 不会收集的 `tests/auto_ut`。不依赖外部编写 Skill 或 MindSpeed 专用执行器。

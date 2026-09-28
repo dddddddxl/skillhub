@@ -20,6 +20,7 @@ def git(repo, *args):
 def run_process(argv, cwd, log, timeout):
     with open(log, 'w', encoding='utf-8') as stream:
         p = subprocess.Popen(argv, cwd=cwd, stdout=stream, stderr=subprocess.STDOUT,
+                             env=dict(os.environ, PYTHONUTF8='1', PYTHONIOENCODING='utf-8'),
                              start_new_session=(os.name == 'posix'))
         try:
             return p.wait(timeout=timeout), False
@@ -127,7 +128,7 @@ def main():
         if rc != 0 or timeout:
             return finish('environment_blocked', 2)
         try:
-            result['device'] = json.loads((out / 'preflight.log').read_text().strip().splitlines()[-1])
+            result['device'] = json.loads((out / 'preflight.log').read_text(encoding='utf-8').strip().splitlines()[-1])
         except (ValueError, IndexError):
             return finish('environment_blocked', 2)
     argv = [sys.executable, '-m', 'pytest', *tests, '--junitxml=' + str(out / 'junit.xml')]
