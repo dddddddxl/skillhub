@@ -35,7 +35,9 @@ description: 根据覆盖审计清单或指定代码变更，复用、适配上�
 
 返回测试补丁、命令与结果、预期依据和未验证范围，区分 CPU、单卡、多卡。审计任务按[完成记录约定](references/completion.md)回填任务 ID、实际测试的提交/补丁身份、场景结果、反例结果、CI 选择及真实 CI 执行。
 
-有 generation-plan.json 时运行 `scripts/check_completion.py --plan /evidence/generation-plan.json --completion /evidence/completion.json`，核对逐场景结果、工件 hash、正反例和验收要求。校验只证明记录一致，不证明 oracle 独立或业务判断正确；生成后仍须复核目标断言和未覆盖范围。
+新完成记录用 v2 的 tests 列出每个场景的全部实际方法，不选代表 ID；负控精确对应同场景的已通过方法，保留脱敏原始日志及 hash。v1 历史记录保持原语义，详见完成记录约定。
+
+有 generation-plan.json 时运行 `scripts/check_completion.py --plan /evidence/generation-plan.json --completion /evidence/completion.json`，核对逐方法结果、工件 hash、正反例和验收要求。v2 未完成记录也核验已填证据，缺少 CI 时仍保持未验证状态。校验只证明记录一致，不证明 oracle 独立或业务判断正确；生成后仍须复核目标断言和未覆盖范围。
 
 生成了文件或本地运行通过，都不等于缺口已关闭。未获请求，不自动发布、合并或启用 CI。
 
